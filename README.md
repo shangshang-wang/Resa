@@ -1,6 +1,6 @@
 <div align="center">
   <h1 style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin-bottom: 10px;">
-    Resa: Transparent Reasoning via SAE
+    Resa: Transparent Reasoning Models via SAE
   </h1>
 
   <hr style="width: 60%; border: none; border-top: 2px solid #ccc; margin: 0 auto 20px auto;">

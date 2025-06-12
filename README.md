@@ -29,7 +29,7 @@
 
 ## Overview
 
-This repository contains the code for the Resa project, accompanying the paper [Resa: Transparent Reasoning Models via SAEs](https://arxiv.org/abs/2504.15777). 
+This repository contains the code for the Resa project, accompanying the paper [Resa: Transparent Reasoning Models via SAEs](https://arxiv.org/abs/2506.09967). 
 We in this project try to answer the question "How cost-effectively can we elicit strong reasoning in language models by leveraging their underlying representations?"
 Specifically, we explore elicit reasoning capabilities in tiny language models via sparse autoencoder tuning (SAE-Tuning).
 
@@ -114,13 +114,13 @@ We also appreciate all researchers releasing their open-source reasoning dataset
 ## Citation
 
 ```cite
-@misc{XXXX,
+@misc{wang2025resatransparentreasoningmodels,
       title={Resa: Transparent Reasoning Models via SAEs}, 
       author={Shangshang Wang and Julian Asilis and Ömer Faruk Akgül and Enes Burak Bilgin and Ollie Liu and Deqing Fu and Willie Neiswanger},
       year={2025},
-      eprint={XXXX},
+      eprint={2506.09967},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/XXXX}, 
+      url={https://arxiv.org/abs/2506.09967}, 
 }
 ```

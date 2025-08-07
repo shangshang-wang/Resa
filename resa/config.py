@@ -56,7 +56,7 @@ class SAETuningConfig:
     sae_name: str = field(default="sae-DeepSeek-R1-Distill-Qwen-1.5B-65k")
     sae_hookpoint: str = field(default="model.layers.0")
     trigger_dataset_name: str = field(default="still")
-    sae_type: Literal["finetuned", "pretrained"] = field(default="finetuned")
+    sae_type: Literal["finetuned", "trained_from_scratch", "pretrained"] = field(default="finetuned")
 
     # target model
     target_model_name: str = field(default="DeepSeek-R1-Distill-Qwen-1.5B")  # Qwen2.5-Math-1.5B, Qwen2.5-1.5B

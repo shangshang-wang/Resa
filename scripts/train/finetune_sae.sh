@@ -42,7 +42,7 @@ for ((i=START_LAYER; i<=END_LAYER; i+=STEP)); do
     done
 
     echo ""
-    echo "Fine-tuning SAE on model ${BASE_MODEL_NAME} post-trained with trigger dataset ${TRIGGER_DATASET_NAME} via ${PT_TYPE}"
+    echo "Fine-tuning SAE on model ${BASE_MODEL_NAME} (post-trained with ${PT_DATASET_NAME} via ${PT_TYPE}) with trigger dataset ${TRIGGER_DATASET_NAME}"
     echo "Override sae_hookpoints=${HOOKPOINT_ARRAY[*]}"
     echo ""
 

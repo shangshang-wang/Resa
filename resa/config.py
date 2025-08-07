@@ -2,12 +2,12 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 
-# check ./recipes/MODEL_NAME/PT_METHOD/model_PT_DATASET.yaml
+# check ./recipes/BASE_MODEL_NAME/PT_TYPE/train_model_XXXX.yaml
 @dataclass
 class ModelPTConfig:
     # //*******Model post-training configs*******//
-    model_post_train_type: Literal["grpo", "sft"] = field(default="sft")
-    model_post_train_dataset_name: str = field(default="r1_rationale_s1")
+    model_post_train_type: Literal["grpo", "sft"] = field(default="grpo")
+    model_post_train_dataset_name: str = field(default="still")
     model_post_train_dataset_config: str | None = field(default=None)
     trace_free: bool = field(default=True)
 
@@ -22,45 +22,45 @@ class ModelPTConfig:
     repetition_max_penalty: float = field(default=-1.0)
 
 
-# check ./recipes/MODEL_NAME/PT_METHOD/sae_PT_DATASET.yaml
+# check ./recipes/BASE_MODEL_NAME/PT_TYPE/train_sae_XXXX.yaml
 @dataclass
 class SAEConfig:
     # //*******SAE configs*******//
     seed: int = field(default=42)
 
-    sae_name: str = field(default="sae-Llama-3.2-1B-131k")
-    sae_expansion_factor: int = field(default=32)
-    sae_num_latents: int = field(default=131072)
-    sae_hookpoints: list[str] = field(default_factory=lambda: ["model.layers.0", "model.layers.1", "model.layers.2", "model.layers.3"])
-    sae_hookpoint_thresholds: list[float] = field(default_factory=lambda: [0.1, 0.1, 0.1, 0.1])
-    sae_inspect_dataset_name: str = field(default="qwen_rationale_limo")
-    sae_inspect_dataset_target_column: str = field(default="question")
-    sae_observe_type: Literal["problem", "completion"] = field(default="completion")
-    sae_explainer_name: str = field(default="deepseek-ai/DeepSeek-R1-Distill-Llama-8B")
-
-    host_model_name: str = field(default="Llama-3.2-1B-Instruct")
-    host_model_post_train_dataset_name: str = field(default="r1_rationale_s1")
-    host_model_post_train_type: Literal["grpo", "sft", "base"]  = field(default="sft")
-    host_model_checkpoints: list[str] = field(default_factory=lambda: ["checkpoint-500", "checkpoint-1000", "checkpoint-1500", "checkpoint-2000", "checkpoint-2500"])
-
-
-# check ./recipes/MODEL_NAME/PT_METHOD/distill_PT_DATASET.yaml
-@dataclass
-class DistillConfig:
-    # //*******Distill configs*******//
-    seed: int = field(default=42)
+    base_model_name: str = field(default="DeepSeek-R1-Distill-Qwen-1.5B")
+    source_model_post_train_dataset_name: str = field(default="still")
+    source_model_post_train_type: Literal["grpo", "sft"]  = field(default="grpo")
+    source_model_checkpoints: list[str] = field(default_factory=lambda: ["checkpoint-500"])
 
     sae_name: str = field(default="sae-DeepSeek-R1-Distill-Qwen-1.5B-65k")
-    sae_hookpoint: str = field(default="model.layers.12")
-    sae_type: str = field(default="finetuned") # finetuned, pretrained, reason_pretrained
+    sae_expansion_factor: int = field(default=32)
+    sae_num_latents: int = field(default=131072)
+    sae_hookpoints: list[str] = field(default_factory=lambda: ["model.layers.0"])
+    trigger_dataset_name: str = field(default="still")
 
+
+# check ./recipes/BASE_MODEL_NAME/PT_TYPE/sae_tuning_XXXX.yaml
+@dataclass
+class SAETuningConfig:
+    # //*******SAE-Tuning configs*******//
+    seed: int = field(default=42)
+
+    # source model
     base_model_name: str = field(default="DeepSeek-R1-Distill-Qwen-1.5B")
-    distill_type: str = field(default="sft_r1_distill") # sft_r1_distill, sft_qwen_math, sft_qwen
-    distill_dataset_name: str = field(default="curated_still")
-    student_model_name: str = field(default="DeepSeek-R1-Distill-Qwen-1.5B") # Qwen2.5-Math-1.5B, Qwen2.5-1.5B
-    host_model_post_train_dataset_name: str = field(default="curated_still")
-    host_model_post_train_type: Literal["grpo"]  = field(default="grpo")
-    host_model_checkpoint: str = field(default="checkpoint-500")
+    source_model_post_train_dataset_name: str = field(default="still")
+    source_model_post_train_type: Literal["grpo", "sft", "base"]  = field(default="grpo")
+    source_model_checkpoint: str = field(default="checkpoint-500")
+
+    # sae
+    sae_name: str = field(default="sae-DeepSeek-R1-Distill-Qwen-1.5B-65k")
+    sae_hookpoint: str = field(default="model.layers.0")
+    trigger_dataset_name: str = field(default="still")
+    sae_type: Literal["finetuned", "pretrained"] = field(default="finetuned")
+
+    # target model
+    target_model_name: str = field(default="DeepSeek-R1-Distill-Qwen-1.5B")  # Qwen2.5-Math-1.5B, Qwen2.5-1.5B
+    elicitation_dataset_name: str = field(default="still")
 
     lora_r: int = field(default=32)
     lora_alpha: int = field(default=128)

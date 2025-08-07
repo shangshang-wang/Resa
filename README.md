@@ -53,10 +53,6 @@ Notably, when applied to certain base models before further RL post-training, SA
 
 ## Quick Start
 
-> [!NOTE]  
-> For better user experience, this repository is still being organized and updated with the latest version used in the paper.
-> An early version of code is provided here as a helpful and functioning reference in the meantime.
-
 ### File Setup
 
 * `./scripts/set/set_vars.sh`: contain the main env vars we use, change the path (marked with a TODO sign) to align with your own setting.
@@ -83,8 +79,11 @@ mamba create -n resa_eval python=3.11 -y && mamba activate resa_eval
 ### Training & Evaluation
 
 SAE-Tuning:
-* SAE Training: `./scripts/train/finetune_sae.sh`
-* SAE-Guided SFT: `./scripts/train/sae_tuning.sh`
+* SAE Training: 
+  * Train-from-Scratch: `./scripts/train/train_sae_from_scratch.sh`
+  * Fine-tuning: `./scripts/train/finetune_sae.sh`
+  * Pre-training: `./scripts/train/pretrain_sae.sh`
+* SAE-Guided SFT: `./scripts/train/sae_tuning_model.sh`
 
 <div style="text-align: center;">
   <img 
@@ -93,7 +92,7 @@ SAE-Tuning:
     style="max-width: 70%; height: auto;">
     </div>
 
-* Evaluate post-trained models: `./scripts/eval/post_train_eval_local.sh`
+* Evaluate post-trained models: `./scripts/eval/eval_sae_tuning.sh`
 
 <div style="text-align: center;">
   <img 

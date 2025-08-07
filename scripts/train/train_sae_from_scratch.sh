@@ -28,7 +28,7 @@ START_LAYER=1
 END_LAYER=26
 STEP=4
 
-PY_SCRIPT="./scripts/train/finetune.py"
+PY_SCRIPT="./scripts/train/train_sae_from_scratch.py"
 PY_CONFIG="./recipes/${BASE_MODEL_NAME}/${PT_TYPE}/train_sae.yaml"
 
 for ((i=START_LAYER; i<=END_LAYER; i+=STEP)); do
@@ -42,7 +42,7 @@ for ((i=START_LAYER; i<=END_LAYER; i+=STEP)); do
     done
 
     echo ""
-    echo "Fine-tuning SAE on model ${BASE_MODEL_NAME} post-trained with trigger dataset ${TRIGGER_DATASET_NAME} via ${PT_TYPE}"
+    echo "Training SAE from scratch on model ${BASE_MODEL_NAME} post-trained with trigger dataset ${TRIGGER_DATASET_NAME} via ${PT_TYPE}"
     echo "Override sae_hookpoints=${HOOKPOINT_ARRAY[*]}"
     echo ""
 

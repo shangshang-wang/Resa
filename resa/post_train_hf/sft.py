@@ -16,7 +16,7 @@ from trl import ModelConfig, SFTConfig, SFTTrainer, TrlParser, DataCollatorForCo
 from resa.config import ModelPTConfig
 from resa.post_train_hf.callback import FixedPromptEvaluationCallback, GradientClippingLoggerCallback, PushToHubRevisionCallback
 from resa.post_train_hf.preprocess import make_conv_for_sft
-from resa.utils.constant import SFT_POST_TRAIN_DATASET_MAP
+from resa.utils.constant import SFT_POST_TRAIN_CONFIG_MAP
 from resa.utils.prompt import OPEN_R1_SYSTEM_PROMPT
 
 import numpy as np
@@ -98,7 +98,7 @@ def main():
     pt_args, training_args, model_args = parser.parse_args_and_config()
     set_seed(training_args.seed)
 
-    os.environ["WANDB_PROJECT"] = "Tina_model_posttrain"
+    os.environ["WANDB_PROJECT"] = "Tina_train_model"
 
     ################
     # Set up logging
@@ -151,7 +151,7 @@ def main():
     #######################################################################
 
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, use_fast=True)
-    model_post_train_dataset_name = SFT_POST_TRAIN_DATASET_MAP[pt_args.model_post_train_dataset_name]
+    model_post_train_dataset_name = SFT_POST_TRAIN_CONFIG_MAP[pt_args.model_post_train_dataset_name]
 
     if pt_args.model_post_train_dataset_config is not None:
         train_dataset = load_dataset(model_post_train_dataset_name, split="train", name=pt_args.model_post_train_dataset_config)

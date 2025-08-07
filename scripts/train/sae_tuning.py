@@ -21,9 +21,9 @@ from accelerate import Accelerator, DistributedDataParallelKwargs
 from accelerate.utils import set_seed as accelerate_set_seed
 import torch.nn.functional as F # Added for F.mse_loss
 
-from resa.config import DistillConfig
+from resa.config import SAETuningConfig
 from resa.sae.preprocess import make_conv_for_sae_grpo
-from resa.utils.constant import RL_POST_TRAIN_DATASET_MAP
+from resa.utils.constant import RL_POST_TRAIN_CONFIG_MAP
 from sparsify.data import chunk_and_tokenize
 
 
@@ -82,12 +82,12 @@ def train_model(args, accelerator, peft_model, sae_module, train_dataloader, tok
 
     if args.sae_type == "finetuned":
         sae_layer_index = int(args.sae_hookpoint.split(".")[-1])
-    elif args.sae_type == "reason_pretrained":
+    elif args.sae_type == "trained_from_scratch": 
         sae_layer_index = int(args.sae_hookpoint.split(".")[-1])
-    elif args.sae_type == "pretrained":
+    elif args.sae_type == "pretrained": # currently not actively supported since trained_from_scratch is better
         sae_layer_index = int(args.sae_hookpoint.split(".")[1])
     else:
-        raise ValueError(f"Invalid SAE type: {args.sae_type}. Expected 'finetuned', 'pretrained', 'reason_pretrained'.")
+        raise ValueError(f"Invalid SAE type: {args.sae_type}. Expected 'finetuned', 'trained_from_scratch', 'pretrained'.")
 
     sae_hook_handle = model_layers[sae_layer_index].register_forward_hook(get_sae_hook(sae_module))
     accelerator.print(f"Registered main SAE hook on layer {sae_layer_index}")
@@ -286,13 +286,13 @@ def train_model(args, accelerator, peft_model, sae_module, train_dataloader, tok
 
 
 def main():
-    parser = TrlParser((DistillConfig))
+    parser = TrlParser((SAETuningConfig))
     (args,) = parser.parse_args_and_config()
 
     accelerator = Accelerator(log_with="wandb")
     accelerate_set_seed(args.seed)
 
-    os.environ["WANDB_PROJECT"] = "Resa_model_distill"
+    os.environ["WANDB_PROJECT"] = "Resa_train_model"
 
     ################
     # Set up logging
@@ -329,82 +329,43 @@ def main():
     ckpt_dir = os.environ.get("CKPT_DIR", "./checkpoints") # Provide a default
     if not os.path.exists(ckpt_dir) and accelerator.is_main_process:
         os.makedirs(ckpt_dir)
-    ckpt_postfix = f"{args.host_model_post_train_type}_{args.host_model_post_train_dataset_name}"
 
-    logger.info(f"Using student model {args.student_model_name}")
-    student_model_path = os.path.join(ckpt_dir,
-                                      "models",
-                                      args.student_model_name,
-                                      "base")
-    if args.sae_type == "finetuned":
-        accelerator.print(f"Using finetuned SAE ({args.sae_hookpoint}) from {args.sae_name}/{ckpt_postfix}/{str(args.host_model_checkpoint)}")
-        sae_path = os.path.join(ckpt_dir,
-                                "saes",
-                                args.sae_name,
-                                ckpt_postfix,
-                                str(args.host_model_checkpoint),
-                                args.sae_hookpoint)
+    source_model_postfix = f"{args.source_model_post_train_type}_{args.source_model_post_train_dataset_name}"
 
-        output_dir = os.path.join(ckpt_dir,
-                                  "models",
-                                  args.base_model_name,
-                                  ckpt_postfix,
-                                  str(args.host_model_checkpoint),
-                                  "distill",
-                                  args.distill_dataset_name,
-                                  args.sae_hookpoint,
-                                  args.distill_type)
+    sae_path = os.path.join(
+        ckpt_dir,
+        "saes",
+        args.sae_name, # parent dir path
+        f"{args.base_model_name}_{source_model_postfix}_{args.source_model_checkpoint}", # source model setup
+        f"{args.sae_type}_{args.trigger_dataset_name}",
+        args.sae_hookpoint # SAE training setup
+    )
 
-        run_name = f"{args.base_model_name}_{ckpt_postfix}_{args.distill_dataset_name}_{args.sae_hookpoint}_{args.student_model_name}_{formatted_datetime}"
-
-    elif args.sae_type == "reason_pretrained":
-        accelerator.print(f"Using reason_pretrained SAE ({args.sae_hookpoint}) from {args.sae_name}/{ckpt_postfix}/{str(args.host_model_checkpoint)}/pretrain")
-        sae_path = os.path.join(ckpt_dir,
-                                "saes",
-                                args.sae_name,
-                                ckpt_postfix,
-                                str(args.host_model_checkpoint),
-                                "pretrain",
-                                args.sae_hookpoint)
-
-        output_dir = os.path.join(ckpt_dir,
-                                  "models",
-                                  args.base_model_name,
-                                  ckpt_postfix,
-                                  str(args.host_model_checkpoint),
-                                  "distill",
-                                  args.distill_dataset_name,
-                                  "pretrain",
-                                  args.sae_hookpoint,
-                                  args.distill_type)
-
-        run_name = f"reason_pretrained_{args.base_model_name}_{ckpt_postfix}_{args.distill_dataset_name}_{args.sae_hookpoint}_{args.student_model_name}_{formatted_datetime}"
-
-    elif args.sae_type == "pretrained":
-        accelerator.print(f"Using pretrained SAE ({args.sae_hookpoint}) from {args.sae_name}")
-        sae_path = os.path.join(ckpt_dir,
-                                "saes",
-                                args.sae_name,
-                                "base",
-                                args.sae_hookpoint)
-
-        output_dir = os.path.join(ckpt_dir,
-                                  "models",
-                                  args.student_model_name,
-                                  "base",
-                                  "distill",
-                                  args.distill_dataset_name,
-                                  args.sae_hookpoint)
-
-        run_name = f"{args.base_model_name}_base_{args.distill_dataset_name}_{args.sae_hookpoint}_{args.student_model_name}_{formatted_datetime}"
-    else:
-        raise ValueError(f"Invalid SAE type: {args.sae_type}. Expected 'finetuned', 'pretrained' or 'reason_pretrained'.")
-
-    # Check existence on main process
-    if not os.path.exists(student_model_path):
-         raise FileNotFoundError(f"Base model path not found: {student_model_path}")
     if not os.path.exists(sae_path):
-         raise FileNotFoundError(f"SAE path not found: {sae_path}")
+        raise FileNotFoundError(f"SAE path not found: {sae_path}")
+    logger.info(f"Using SAE from {sae_path}")
+
+    target_model_path = os.path.join(
+        ckpt_dir,
+        "models",
+        args.target_model_name,
+        "base"
+    )
+
+    if not os.path.exists(target_model_path):
+         raise FileNotFoundError(f"Target model path not found: {target_model_path}")
+    logger.info(f"Using target model {args.target_model_name}")
+
+    output_dir = os.path.join(
+        ckpt_dir,
+        "models",
+        args.target_model_name, # parent dir path
+        f"sae_tuning_{args.elicitation_dataset_name}",  # target model setup
+        f"{args.base_model_name}_{source_model_postfix}_{args.source_model_checkpoint}",  # source model setup
+        f"{args.sae_type}_{args.trigger_dataset_name}_{args.sae_hookpoint}", # SAE training setup
+    )
+
+    run_name = f"Tuning_{args.target_model_name}_with_{args.sae_type}_{args.sae_hookpoint}_SAE_trained_on_{args.base_model_name}_{source_model_postfix}_and_{args.trigger_dataset_name}_with_{args.elicitation_dataset_name}_{formatted_datetime}"
 
     # Initialize trackers (like WandB) on the main process after paths are set
     if accelerator.is_main_process:
@@ -418,14 +379,14 @@ def main():
     # Load and preprocess dataset
     #############################
 
-    accelerator.print(f"Loading and preprocessing dataset {args.distill_dataset_name} ...")
-    if args.distill_dataset_name in RL_POST_TRAIN_DATASET_MAP.keys():
-        assert args.host_model_post_train_type == "grpo"
-        distill_dataset_name = RL_POST_TRAIN_DATASET_MAP[args.distill_dataset_name]
+    accelerator.print(f"Loading and preprocessing dataset {args.elicitation_dataset_name} ...")
+    if args.elicitation_dataset_name in RL_POST_TRAIN_CONFIG_MAP.keys():
+        assert args.source_model_post_train_type == "grpo"
+        elicitation_dataset_name = RL_POST_TRAIN_CONFIG_MAP[args.elicitation_dataset_name]
         dataset_split = "train"
-        raw_dataset = load_dataset(distill_dataset_name, split=dataset_split)
+        raw_dataset = load_dataset(elicitation_dataset_name, split=dataset_split)
 
-        if "2thought" in args.distill_dataset_name:
+        if "2thought" in args.elicitation_dataset_name:
             raw_dataset = raw_dataset.rename_column('messages', 'problem')
             raw_dataset = raw_dataset.rename_column('verification_info', 'answer')
 
@@ -441,22 +402,22 @@ def main():
             # Apply the transformation to the entire dataset
             raw_dataset = raw_dataset.map(extract_problem)
             raw_dataset = raw_dataset.map(extract_answer)
-        elif "thoughts3" in args.distill_dataset_name:
+        elif "thoughts3" in args.elicitation_dataset_name:
             raw_dataset = raw_dataset.filter(lambda example: example["domain"] == "science")
 
         processed_dataset = raw_dataset.map(
             make_conv_for_sae_grpo,
             fn_kwargs={
-                "dataset_name_or_path": distill_dataset_name if "thoughts3" in args.distill_dataset_name else None},
+                "dataset_name_or_path": elicitation_dataset_name if "thoughts3" in args.elicitation_dataset_name else None},
             batched=True,
         )
 
     else:
-        accelerator.print(f"Dataset {args.distill_dataset_name} not found in RL_POST_TRAIN_DATASET_MAP.", main_process_only=True)
-        raise ValueError(f"Dataset {args.distill_dataset_name} not found.")
+        accelerator.print(f"Dataset {args.elicitation_dataset_name} not found in RL_POST_TRAIN_CONFIG_MAP.", main_process_only=True)
+        raise ValueError(f"Dataset {args.elicitation_dataset_name} not found.")
 
     accelerator.print(f"Load and tokenize dataset: {processed_dataset}")
-    tokenizer = AutoTokenizer.from_pretrained(student_model_path)
+    tokenizer = AutoTokenizer.from_pretrained(target_model_path)
     tokenized_dataset = chunk_and_tokenize(processed_dataset, tokenizer) # Add max_length if needed
     train_dataset = TokenizedTextDataset(tokenized_dataset)
     train_dataloader = DataLoader(
@@ -468,11 +429,12 @@ def main():
     # Load model and SAE
     ####################
 
-    accelerator.print(f"Loading Model from {student_model_path} and SAE from {sae_path}")
+    accelerator.print(f"Loading Model from {target_model_path} and SAE from {sae_path}")
     model = AutoModelForCausalLM.from_pretrained(
-        student_model_path,
+        target_model_path,
         torch_dtype=torch.bfloat16, # Use bfloat16 for efficiency
-        attn_implementation='flash_attention_2', # or 'eager' based on model
+        attn_implementation='flash_attention_2', # or 'eager' based on GPU
+        # attn_implementation='eager',  # or 'eager' based on GPU
     )
     model.requires_grad_(False) # Freeze base model
 

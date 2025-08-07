@@ -1,7 +1,6 @@
-# check ./resee/utils/constant.py
-model_post_train_dataset_name: curated_deepscaler
+# check ./resa/utils/constant.py
+model_post_train_dataset_name: still
 model_post_train_type: sft
-trace_free: false # for trace-based ablation
 
 # Model configs from trl
 model_name_or_path: DeepSeek-R1-Distill-Qwen-1.5B
@@ -31,17 +30,17 @@ learning_rate: 1e-05
 logging_strategy: steps
 log_level: info
 logging_steps: 1
-push_to_hub: false
+push_to_hub: false # set as false on purpose
 hub_strategy: every_save
 hub_private_repo: true
-hub_model_id: # TODO
+hub_model_id: upup-ashton-wang # TODO
 
 max_grad_norm: 1
 max_seq_length: 2048
 num_train_epochs: 3
 overwrite_output_dir: true
 packing: false
-per_device_train_batch_size: 8
+per_device_train_batch_size: 16
 report_to:
 - wandb
 save_strategy: steps
@@ -49,3 +48,4 @@ save_steps: 500
 save_total_limit: 100
 seed: 42
 warmup_ratio: 0.05
+

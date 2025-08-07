@@ -1,6 +1,7 @@
-# check ./resee/utils/constant.py
-model_post_train_dataset_name: curated_still
+# check ./resa/utils/constant.py
+model_post_train_dataset_name: deepscaler
 model_post_train_type: sft
+trace_free: false # for trace-based ablation
 
 # Model configs from trl
 model_name_or_path: DeepSeek-R1-Distill-Qwen-1.5B
@@ -40,7 +41,7 @@ max_seq_length: 2048
 num_train_epochs: 3
 overwrite_output_dir: true
 packing: false
-per_device_train_batch_size: 16
+per_device_train_batch_size: 8
 report_to:
 - wandb
 save_strategy: steps

@@ -1,0 +1,9 @@
+# SAE training configs: check ./resa/config.py
+seed: 42
+
+base_model_name: DeepSeek-R1-Distill-Qwen-1.5B
+source_model_post_train_type: grpo
+
+sae_name: sae-DeepSeek-R1-Distill-Qwen-1.5B-65k
+sae_expansion_factor: 64
+sae_num_latents: 65536

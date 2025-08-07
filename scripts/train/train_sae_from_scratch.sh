@@ -28,7 +28,7 @@ START_LAYER=1
 END_LAYER=26
 STEP=4
 
-PY_SCRIPT="./scripts/train/train_sae_from_scratch.py"
+PY_SCRIPT="./scripts/train/train_from_scratch.py"
 PY_CONFIG="./recipes/${BASE_MODEL_NAME}/${PT_TYPE}/train_sae.yaml"
 
 for ((i=START_LAYER; i<=END_LAYER; i+=STEP)); do

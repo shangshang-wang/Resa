@@ -33,7 +33,7 @@ for TARGET_MODEL_CKPT in "${TARGET_MODEL_CKPT_LIST[@]}"; do
     echo "Eval ${TARGET_MODEL_NAME} with ${SAE_TYPE} SAE (trained on ${TRIGGER_DATASET_NAME}) at ${SAE_HOOKPOINT} from ${BASE_MODEL_NAME} (${SOURCE_MODEL_CKPT} post-trained with ${PT_DATASET_NAME} via ${PT_TYPE}) on ${ELICITATION_DATASET_NAME}"
     echo ""
 
-    python ./ress/sae/merge_sae_tuned_models.py \
+    python ./resa/sae/merge_sae_tuned_models.py \
         --base_model_name "${BASE_MODEL_NAME}" \
         --source_model_adapter_type "${PT_TYPE}_${PT_DATASET_NAME}" \
         --source_model_checkpoint "${SOURCE_MODEL_CKPT}" \

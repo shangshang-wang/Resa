@@ -1,4 +1,4 @@
-name: tina_eval
+name: resa_eval
 channels:
   - nvidia/label/cuda-11.8.0
   - defaults

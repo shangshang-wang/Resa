@@ -63,27 +63,24 @@ Notably, when applied to certain base models before further RL post-training, SA
 
 Run the following commands to install the dependencies.
 ```bash
-conda update -n base -c defaults conda -y
-conda install -n base -c conda-forge mamba -y
+conda create -n resa python=3.10 -y && conda activate resa
+./scripts/set/set_env.sh && conda deactivate
 
-mamba create -n resa python=3.10 -y && mamba activate resa
-./scripts/set/set_env.sh && mamba deactivate
-
-mamba create -n resa_eval python=3.11 -y && mamba activate resa_eval
-./scripts/set/set_env_eval.sh && mamba deactivate
+conda create -n resa_eval python=3.10 -y && conda activate resa_eval
+./scripts/set/set_env_eval.sh && conda deactivate
 
 # download the pre-trained models to the `CKPT_DIR` directory.
-./scripts/set/prepare.sh
+conda activate resa && ./scripts/set/prepare.sh
 ```
 
 ### Training & Evaluation
 
 SAE-Tuning:
 * SAE Training: 
-  * Train-from-Scratch: `./scripts/train/train_sae_from_scratch.sh`
-  * Fine-tuning: `./scripts/train/finetune_sae.sh`
-  * Pre-training: `./scripts/train/pretrain_sae.sh`
-* SAE-Guided SFT: `./scripts/train/sae_tuning_model.sh`
+  * Train-from-Scratch: `conda activate resa && ./scripts/train/train_sae_from_scratch.sh`
+  * Fine-tuning: `conda activate resa && ./scripts/train/finetune_sae.sh`
+  * Pre-training: `conda activate resa && ./scripts/train/pretrain_sae.sh`
+* SAE-Guided SFT: `conda activate resa && ./scripts/train/sae_tuning_model.sh`
 
 <div style="text-align: center;">
   <img 
@@ -92,7 +89,7 @@ SAE-Tuning:
     style="max-width: 70%; height: auto;">
     </div>
 
-* Evaluate post-trained models: `./scripts/eval/eval_sae_tuning.sh`
+* Evaluate post-trained models: `conda activate resa_eval && ./scripts/eval/eval_sae_tuning.sh`
 
 <div style="text-align: center;">
   <img 
